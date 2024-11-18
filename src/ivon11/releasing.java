@@ -1,14 +1,15 @@
 
 package ivon11;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class releasing {
-    // Use a single Scanner object for all input
+   
     private Scanner sc = new Scanner(System.in);
 
     public void rtransaction() {
-        String response;
+        String response = null;
         do {
             System.out.println("\n---------------------------");
             System.out.println("RELEASING PANEL:");
@@ -17,10 +18,24 @@ public class releasing {
             System.out.println("3. Update released");
             System.out.println("4. Delete released");
             System.out.println("5. Exit");
+ int act = 0;
 
-            System.out.print("Enter Selection: ");
-            int act = sc.nextInt();
-            sc.nextLine(); // Clear buffer
+            boolean validChoice = false;
+            while (!validChoice) {
+                System.out.println("Enter Choice (1-5):");
+                try {
+                    act = sc.nextInt();
+
+                    if (act >= 1 && act <= 5) {
+                        validChoice = true;
+                    } else {
+                        System.out.println("Invalid choice! Please select a number between 1 to 5.");
+                    }
+                } catch (InputMismatchException e) {
+                    System.out.println("Oops! Please enter a number between 1 to 5.");
+                    sc.nextLine();  
+                }
+            }
 
             switch (act) {
                 case 1:
@@ -47,97 +62,120 @@ public class releasing {
                     System.out.println("Invalid selection. Please try again.");
             }
 
-            System.out.println("Do you want to continue? (yes/no):");
-            response = sc.nextLine();
+            
+            boolean validResponse = false;
+            while (!validResponse) {
+                System.out.print("Do you want to continue? (yes/no): ");
+                response = sc.next();
+                if (response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("no")) {
+                    validResponse = true;
+                } else {
+                    System.out.println("Invalid input. Please enter 'yes' or 'no'.");
+                }
+            }
 
         } while (response.equalsIgnoreCase("yes"));
     }
-
-    // Add a new release (with input validation)
-    public void addreleasing() {
+   public void addreleasing() {
         config conf = new config();
 
-        // Select a beneficiary
+      
         beneficiary bs = new beneficiary();
         bs.viewbeneficiary();
 
-        int bid = getValidBeneficiaryId(conf);  // Get valid beneficiary ID
-
-        // Select a program
+        int bid = getValidBeneficiaryId(conf); 
+       
         program pm = new program();
         pm.viewprogram();
 
-        int pid = getValidProgramId(conf);  // Get valid program ID
+        int pid = getValidProgramId(conf);  
 
-        // Released cash (double check input)
+       
         double rcash = getValidReleasedCash();
 
-        // Released date (validate date format)
+       
         String rdate = getValidReleasedDate();
 
-        // Released status (validate status input)
-        String rstatus = getValidReleasedStatus();
+                String rstatus = getValidReleasedStatus();
 
-        // Insert into the database
+       
         String sql = "INSERT INTO tbl_releasing (b_id, p_id, r_cash, r_date, r_status) VALUES (?, ?, ?, ?, ?)";
         conf.addRecord(sql, bid, pid, rcash, rdate, rstatus);
 
         System.out.println("Releasing successfully added.");
     }
 
-    // Method to get a valid beneficiary ID
+  
     private int getValidBeneficiaryId(config conf) {
         int bid;
         while (true) {
             System.out.print("Enter the ID of the Beneficiary: ");
-            bid = sc.nextInt();
-            String bsql = "SELECT b_id FROM tbl_beneficiary WHERE b_id = ?";
-            if (conf.getSingleValue(bsql, bid) != 0) {
-                break;  // Beneficiary exists
+            if (sc.hasNextInt()) {
+                bid = sc.nextInt();
+                String bsql = "SELECT b_id FROM tbl_beneficiary WHERE b_id = ?";
+                if (conf.getSingleValue(bsql, bid) != 0) {
+                    sc.nextLine(); 
+                    break;  
+                }
+                System.out.println("Beneficiary does not exist. Please select a valid Beneficiary ID.");
+            } else {
+                System.out.println("Invalid input! Beneficiary ID must be a number.");
+                sc.next(); 
             }
-            System.out.println("Beneficiary does not exist. Please select a valid Beneficiary ID.");
         }
         return bid;
     }
 
-    // Method to get a valid program ID
+    
     private int getValidProgramId(config conf) {
         int pid;
         while (true) {
             System.out.print("Enter the ID of the Program: ");
-            pid = sc.nextInt();
-            String psql = "SELECT p_id FROM tbl_program WHERE p_id = ?";
-            if (conf.getSingleValue(psql, pid) != 0) {
-                break;  // Program exists
+            if (sc.hasNextInt()) {
+                pid = sc.nextInt();
+                String psql = "SELECT p_id FROM tbl_program WHERE p_id = ?";
+                if (conf.getSingleValue(psql, pid) != 0) {
+                    sc.nextLine();  
+                    break;  
+                }
+                System.out.println("Program does not exist. Please select a valid Program ID.");
+            } else {
+                System.out.println("Invalid input! Program ID must be a number.");
+                sc.next(); 
             }
-            System.out.println("Program does not exist. Please select a valid Program ID.");
         }
         return pid;
     }
 
-    // Method to get valid released cash (double)
+   
     private double getValidReleasedCash() {
         double rcash;
         while (true) {
             System.out.print("Enter Released Cash: ");
-            rcash = sc.nextDouble();
-            if (rcash > 0) {
-                break;  // Cash must be positive
+            if (sc.hasNextDouble()) {
+                rcash = sc.nextDouble();
+                if (rcash > 0) {
+                    sc.nextLine();  
+                    break;  
+                } else {
+                    System.out.println("Invalid amount. Cash must be a positive number.");
+                }
             } else {
-                System.out.println("Invalid amount. Cash must be a positive number.");
+                System.out.println("Invalid input! Released Cash must be a number.");
+                sc.next();  
             }
         }
         return rcash;
     }
 
-    // Method to get a valid released date (format YYYY-MM-DD)
+   
     private String getValidReleasedDate() {
         String rdate;
         while (true) {
             System.out.print("Enter Released Date (YYYY-MM-DD): ");
-            rdate = sc.nextLine();
+            rdate = sc.nextLine().trim();
             if (rdate.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                break;  // Date format is correct
+                break;  
             } else {
                 System.out.println("Invalid date format. Please enter in the format YYYY-MM-DD.");
             }
@@ -145,7 +183,7 @@ public class releasing {
         return rdate;
     }
 
-    // Method to get valid status (must be one of a predefined set)
+   
     private String getValidReleasedStatus() {
         String rstatus;
         while (true) {
@@ -160,7 +198,7 @@ public class releasing {
         return rstatus;
     }
 
-    // View all released records
+   
     public void viewreleasing() {
         config conf = new config();
         String projectQuery = "SELECT * FROM tbl_releasing "
@@ -172,59 +210,109 @@ public class releasing {
         conf.viewRecords(projectQuery, projectHeaders, projectColumns);
     }
 
-    // Update releasing record
+    
     public void updatereleasing() {
-        config conf = new config();
+    
+config conf = new config();
+        int rid = getValidReleasingId(conf); 
+        String pname = getValidProgramName();  
+        int pid = getProgramIdFromName(conf, pname);  
 
-        System.out.print("Enter Releasing ID to Update: ");
-        int rid = sc.nextInt();
-        sc.nextLine(); // Clear the buffer
-
-        System.out.print("Enter new Beneficiary Name: ");
-        String bname = sc.nextLine();
-
-        System.out.print("Enter new Program Name: ");
-        String pname = sc.nextLine();
-
-        double rcash = getValidReleasedCash();
-
-        String rdate = getValidReleasedDate();
-
-        String rstatus = getValidReleasedStatus();
-
-        String sql = "UPDATE tbl_releasing SET b_name = ?, p_name = ?, r_cash = ?, r_date = ?, r_status = ? WHERE r_id = ?";
-        conf.updateRecord(sql, bname, pname, rcash, rdate, rstatus, rid);
+        double rcash = getValidReleasedCash();  
+        String rdate = getValidReleasedDate(); 
+        String rstatus = getValidReleasedStatus(); 
+        // Update releasing record query
+        String sql = "UPDATE tbl_releasing SET p_id = ?, r_cash = ?, r_date = ?, r_status = ? WHERE r_id = ?";
+        conf.updateRecord(sql, pid, rcash, rdate,rstatus, rid);  // Execute the update
 
         System.out.println("Releasing record updated successfully.");
     }
 
-    // Delete releasing record
+    
+    private int getValidReleasingId(config conf) {
+        int rid = 0;
+        boolean validID = false;
+        while (!validID) {
+            System.out.print("Enter ID of releasing to update: ");
+            if (sc.hasNextInt()) {
+                rid = sc.nextInt();
+                sc.nextLine(); 
+                if (conf.getSingleValue("SELECT r_id FROM tbl_releasing WHERE r_id = ?", rid) != 0) {
+                    validID = true; 
+                } else {
+                    System.out.println("Selected ID doesn't exist! Please enter a valid ID.");
+                }
+            } else {
+                System.out.println("Invalid input! ID must be a number.");
+                sc.nextLine();
+            }
+        }
+        return rid;
+    }
+
+   
+    private String getValidProgramName() {
+        String pname = "";
+        boolean isValidProgram = false;
+        String[] validPrograms = {"UNIFAST", "4PS", "MALASAKIT", "TULONG DUNGOG"};
+        while (!isValidProgram) {
+            System.out.println("(UNIFAST, 4PS, MALASAKIT, TULONG DUNGOG)");
+            System.out.print("Enter New Program Name: ");
+            pname = sc.nextLine().trim();
+
+          
+            isValidProgram = false;
+            for (String validProgram : validPrograms) {
+                if (validProgram.equalsIgnoreCase(pname)) {
+                    isValidProgram = true;
+                    break;
+                }
+            }
+
+            if (!isValidProgram) {
+                System.out.println("Error: Invalid program name. Please choose from the following:");
+                for (String validProgram : validPrograms) {
+                    System.out.println(validProgram);
+                }
+            }
+        }
+        return pname;
+    }
+
+    
+    private int getProgramIdFromName(config conf, String pname) {
+        String sql = "SELECT p_id FROM tbl_program WHERE p_name = ?";
+        return (int) conf.getSingleValue(sql, pname);  
+    }
+
     public void deletereleasing() {
-        config conf = new config();
-        System.out.print("Enter Releasing ID to delete: ");
-        int rid = sc.nextInt();
-        sc.nextLine(); // Clear buffer
+     Scanner sc = new Scanner(System.in);
+    config conf = new config();
 
-        System.out.print("Are you sure you want to delete Releasing ID " + rid + "? (Y/N): ");
-        String confirmation = sc.nextLine();
-
-        if (confirmation.equalsIgnoreCase("Y")) {
-            String sql = "DELETE FROM tbl_releasing WHERE r_id = ?";
-            conf.deleteRecord(sql, rid);
-            System.out.println("Releasing deleted successfully.");
+   
+    int rid = 0;
+    boolean validID = false;
+    while (!validID) {
+        System.out.print("Enter Id to Delete: ");
+        
+       
+        if (sc.hasNextInt()) {
+            rid = sc.nextInt();
+           
+            if (conf.getSingleValue("SELECT r_id FROM tbl_releasing WHERE r_id = ?", rid) != 0) {
+                validID = true; 
+            } else {
+                System.out.println("Selected ID doesn't exist! Please enter a valid ID.");
+            }
         } else {
-            System.out.println("Delete action canceled.");
+            System.out.println("Invalid input! ID must be a number.");
+            sc.nextLine(); 
         }
     }
+
+   
+    String qry = "DELETE FROM tbl_releasing WHERE r_id = ?";
+    conf.deleteRecord(qry, rid); 
+    System.out.println("Program with ID " + rid + " has been deleted successfully.");
 }
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-
+}
