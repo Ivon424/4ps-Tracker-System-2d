@@ -1,3 +1,4 @@
+
 package ivon11;
 
 import java.sql.*;
@@ -38,9 +39,11 @@ public class report {
                 case 1:
                     generalReport();
                     break;
+               
                 case 2:
                     individualReport();
                     break;
+                    
                 default:
                     exit = false;
                     System.out.println("Exiting the report system.");
@@ -81,22 +84,25 @@ public class report {
         }
     }
 
-    // Individual Report method
+   // Individual Report method
 private void individualReport() {
     boolean exit = true;
     System.out.println("-----------------------------------------------");
     System.out.println("Individual Releasing Report");
-    System.out.println("Enter Releasing ID to View (Enter yes to exit):");
 
+    // Display all available releasing IDs first
+    displayAvailableReleasingIDs();
+
+    System.out.println("Enter Releasing ID to View ");
+    
     int rid = -1;  // Default value to indicate an invalid ID initially
     while (exit) {
         System.out.print("Enter Releasing ID: ");
         try {
             rid = input.nextInt();
-            int yes = 0;
-
+            
             // Check if user wants to exit
-            if (rid == yes) {
+            if (rid == 0) {
                 exit = false;
                 System.out.println("Exiting Individual Report.");
                 break;  // Exit the loop
@@ -118,6 +124,29 @@ private void individualReport() {
     // Fetch and display data for valid ID
     if (rid != 0) {
         displayIndividualReport(rid);
+    }
+}
+
+// Method to display all available Releasing IDs
+private void displayAvailableReleasingIDs() {
+    String sql = "SELECT r_id FROM tbl_releasing";
+    try (Connection conn = conf.connectDB();
+         PreparedStatement stmt = conn.prepareStatement(sql);
+         ResultSet rs = stmt.executeQuery()) {
+
+        System.out.println("Available Releasing IDs:");
+        boolean found = false;
+        while (rs.next()) {
+            System.out.println("Releasing ID: " + rs.getInt("r_id"));
+            found = true;
+        }
+
+        if (!found) {
+            System.out.println("No available Releasing IDs.");
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Error retrieving Releasing IDs: " + e.getMessage());
     }
 }
 
